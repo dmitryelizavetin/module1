@@ -9,7 +9,9 @@ public class Character : MonoBehaviour
         Idle,
         RunningToEnemy,
         RunningFromEnemy,
+        ZRunningToEnemy,
         BeginAttack,
+        ZBeginAttack,
         Attack,
         BeginShoot,
         Shoot,
@@ -19,6 +21,7 @@ public class Character : MonoBehaviour
     {
         Pistol,
         Bat,
+        Fist,
     }
 
     public float runSpeed;
@@ -29,6 +32,7 @@ public class Character : MonoBehaviour
     Vector3 originalPosition;
     Quaternion originalRotation;
     State state = State.Idle;
+    bool dead;
 
     // Start is called before the first frame update
     void Start()
@@ -36,6 +40,7 @@ public class Character : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
         originalPosition = transform.position;
         originalRotation = transform.rotation;
+        dead = false;
     }
 
     [ContextMenu("Attack")]
@@ -49,6 +54,10 @@ public class Character : MonoBehaviour
             case Weapon.Pistol:
                 state = State.BeginShoot;
                 break;
+
+            case Weapon.Fist:
+                state = State.ZRunningToEnemy;
+                break;
         }
     }
 
@@ -57,9 +66,23 @@ public class Character : MonoBehaviour
         state = newState;
     }
 
+    public void Kill()
+    {
+        if (!dead)
+        {
+            dead = true;
+            //  Destroy(capsuleCollider);
+            //  Destroy(movementAnimator);
+            //  Destroy(navMeshAgent);
+            animator.SetTrigger("died");
+        }
+    }
+
+
     // Update is called once per frame
     void FixedUpdate()
     {
+
         switch (state) {
             case State.Idle:
                 animator.SetFloat("speed", 0.0f);
@@ -78,9 +101,21 @@ public class Character : MonoBehaviour
                     state = State.Idle;
                 break;
 
+            case State.ZRunningToEnemy:
+                animator.SetFloat("speed", runSpeed);
+                if (RunTowards(target.position, distanceFromEnemy))
+                    state = State.ZBeginAttack;
+                break;
+
             case State.BeginAttack:
                 animator.SetFloat("speed", 0.0f);
                 animator.SetTrigger("attack");
+                state = State.Attack;
+                break;
+
+            case State.ZBeginAttack:
+                animator.SetFloat("speed", 0.0f);
+                animator.SetTrigger("zattack");
                 state = State.Attack;
                 break;
 
