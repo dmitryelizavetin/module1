@@ -15,11 +15,12 @@ public class CharacterAnimationEvents : MonoBehaviour
     void AttackEnd()
     {
         character.SetState(Character.State.RunningFromEnemy);
-        character.Kill();
+        character.KillTarget();
     }
 
     void ShootEnd()
     {
         character.SetState(Character.State.Idle);
+        character.KillTarget();
     }
 }

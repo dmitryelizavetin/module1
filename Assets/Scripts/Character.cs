@@ -15,6 +15,7 @@ public class Character : MonoBehaviour
         Attack,
         BeginShoot,
         Shoot,
+        Died,
     }
 
     public enum Weapon
@@ -27,6 +28,7 @@ public class Character : MonoBehaviour
     public float runSpeed;
     public float distanceFromEnemy;
     public Transform target;
+    Character currenttarget;
     public Weapon weapon;
     Animator animator;
     Vector3 originalPosition;
@@ -41,11 +43,15 @@ public class Character : MonoBehaviour
         originalPosition = transform.position;
         originalRotation = transform.rotation;
         dead = false;
+        currenttarget = target.GetComponent<Character>();
     }
 
     [ContextMenu("Attack")]
     void AttackEnemy()
     {
+        if (currenttarget.state == State.Died)
+            return;
+
         switch (weapon) {
             case Weapon.Bat:
                 state = State.RunningToEnemy;
@@ -66,19 +72,6 @@ public class Character : MonoBehaviour
         state = newState;
     }
 
-    public void Kill()
-    {
-        if (!dead)
-        {
-            dead = true;
-            //  Destroy(capsuleCollider);
-            //  Destroy(movementAnimator);
-            //  Destroy(navMeshAgent);
-            animator.SetTrigger("died");
-        }
-    }
-
-
     // Update is called once per frame
     void FixedUpdate()
     {
@@ -91,7 +84,7 @@ public class Character : MonoBehaviour
 
             case State.RunningToEnemy:
                 animator.SetFloat("speed", runSpeed);
-                if (RunTowards(target.position, distanceFromEnemy))
+                if (RunTowards(target.position, distanceFromEnemy))   
                     state = State.BeginAttack;
                 break;
 
@@ -132,7 +125,25 @@ public class Character : MonoBehaviour
             case State.Shoot:
                 animator.SetFloat("speed", 0.0f);
                 break;
+
+            case State.Died:
+                break;
         }
+    }
+
+    public void Kill()
+    {
+        if (!dead)
+        {
+            dead = true;
+            animator.SetTrigger("died");
+            SetState(State.Died);
+        }
+    }
+
+    public void KillTarget()
+    {
+        currenttarget.Kill();
     }
 
     bool RunTowards(Vector3 targetPosition, float distanceFromTarget)
