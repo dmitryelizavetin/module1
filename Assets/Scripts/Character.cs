@@ -49,7 +49,7 @@ public class Character : MonoBehaviour
     [ContextMenu("Attack")]
     void AttackEnemy()
     {
-        if (currenttarget.state == State.Died)
+        if (state != State.Idle || currenttarget.state == State.Died)
             return;
 
         switch (weapon) {
